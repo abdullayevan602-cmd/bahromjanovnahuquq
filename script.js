@@ -1,486 +1,494 @@
-// Navigation configuration
-const NAV_ITEMS = [
-    { id: 'home', icon: 'fa-house', label: 'Bosh Sahifa', showMobile: true },
-    { id: 'ai', icon: 'fa-robot', label: 'AI Yurist', showMobile: true },
-    { id: 'lessons', icon: 'fa-book', label: 'Huquq Darslari', showMobile: true },
-    { id: 'codes', icon: 'fa-scale-unbalanced', label: 'Kodekslar', showMobile: true },
-    { id: 'cases', icon: 'fa-users-viewfinder', label: 'Vaziyatlar', showMobile: false },
-    { id: 'tests', icon: 'fa-list-check', label: 'Testlar', showMobile: false },
-    { id: 'progress', icon: 'fa-chart-pie', label: 'Natijalarim', showMobile: true }
-];
+// --- FALLBACK DATA (Ensures it works perfectly without server/fetch) ---
+const FALLBACK_DATA = {
+    lessons: [
+        { id: "l1", level: "Boshlang'ich", title: "Huquq nima?", simple_explanation: "Huquq — bu jamiyat qoidalari.", audio_text: "Huquq — bu jamiyatda odamlar qanday yashashini belgilab beruvchi qoidalar to'plami." },
+        { id: "l2", level: "O'rta", title: "Shartnoma tushunchasi", simple_explanation: "Shartnoma - kelishuv.", audio_text: "Shartnoma ikki yoki undan ortiq shaxsning kelishuvi hisoblanadi." }
+    ],
+    codes: [
+        {
+            title: "Mehnat Kodeksi",
+            sections: [
+                {
+                    title: "I Bo'lim. Umumiy Qoidalar",
+                    articles: [
+                        { number: "1-modda", title: "Maqsadi", text: "Mehnat to'g'risidagi qonunchilikning maqsadi... ishchi va ish beruvchi munosabatlarini tartibga solish.", explanation: "Mehnat qoidalari adolat o'rnatish uchun." }
+                    ]
+                }
+            ]
+        }
+    ],
+    cases: [
+        {
+            title: "Mehnat nizosi: Maosh bermaslik",
+            scenario: "Xodim 3 oy ishladi, mehnat shartnomasi yo'q, oylik berilmadi.",
+            questions: [{ q: "Muammo nimada?", options: ["Soliq", "Maosh berilmaganligi", "Vaqt"], correct: 1 }],
+            explanation: "Shartnoma tuzilmagan bo'lsa ham xodim ishlaganini isbotlasa sud orqali undirishi mumkin."
+        }
+    ],
+    tests: [
+        { question: "Asosiy qonun qanday ataladi?", options: ["Kodeks", "Konstitutsiya", "Farmon"], correct_index: 1 }
+    ]
+};
 
-// App State
-const state = {
-    currentTab: 'home',
-    data: {
-        laws: [], codes: [], lessons: [], tests: [], cases: []
+// --- TRANSLATIONS ---
+const I18N = {
+    uz: {
+        home_title: "Huquqni O'rganishni Boshlang", home_desc: "Noldan professional darajagacha huquqshunoslik.", btn_start: "Boshlash",
+        nav_home: "Bosh Sahifa", nav_ai: "AI Yurist", nav_lessons: "Huquq Darslari", nav_codes: "Kodekslar",
+        nav_cases: "Vaziyatlar (Study)", nav_usercases: "Mening ishlarim", nav_docgen: "Hujjat Generatori", 
+        nav_contract: "Shartnoma Tahlili", nav_tests: "Testlar", nav_progress: "Natijalar",
+        ai_welcome: "Assalomu alaykum! Men sizning yordamchi AI yuristingizman. Savolingizni bering.",
+        search_placeholder: "Qonun, modda qidirish...", ai_placeholder: "Savolingizni yozing..."
     },
-    progress: JSON.parse(localStorage.getItem('lawMasterProgress')) || {
-        score: 0,
-        level: 'Boshlang\'ich',
-        completedLessons: [],
-        completedTests: []
+    ru: {
+        home_title: "Начните изучать право", home_desc: "От нуля до профессионального уровня.", btn_start: "Начать",
+        nav_home: "Главная", nav_ai: "ИИ Юрист", nav_lessons: "Уроки права", nav_codes: "Кодексы",
+        nav_cases: "Ситуации (Study)", nav_usercases: "Мои дела", nav_docgen: "Генератор док.", 
+        nav_contract: "Анализ договора", nav_tests: "Тесты", nav_progress: "Результаты",
+        ai_welcome: "Здравствуйте! Я ваш ИИ юрист. Задайте свой вопрос.",
+        search_placeholder: "Поиск законов, статей...", ai_placeholder: "Напишите ваш вопрос..."
     },
-    settings: JSON.parse(localStorage.getItem('lawMasterSettings')) || {
-        theme: 'light',
-        lang: 'uz',
-        speed: 1
-    },
-    audio: {
-        synth: window.speechSynthesis,
-        utterance: null,
-        isPlaying: false,
-        textToPlay: ''
+    en: {
+        home_title: "Start Learning Law", home_desc: "From scratch to professional level.", btn_start: "Start",
+        nav_home: "Home", nav_ai: "AI Lawyer", nav_lessons: "Law Lessons", nav_codes: "Codes",
+        nav_cases: "Study Cases", nav_usercases: "My Cases", nav_docgen: "Doc Generator", 
+        nav_contract: "Contract Review", nav_tests: "Tests", nav_progress: "Progress",
+        ai_welcome: "Hello! I am your AI assistant lawyer. Ask me a question.",
+        search_placeholder: "Search laws, articles...", ai_placeholder: "Type your question..."
     }
 };
 
-// Main App Controller
+const NAV_ITEMS = [
+    { id: 'home', icon: 'fa-house', key: 'nav_home' },
+    { id: 'ai', icon: 'fa-robot', key: 'nav_ai' },
+    { id: 'lessons', icon: 'fa-book', key: 'nav_lessons' },
+    { id: 'codes', icon: 'fa-scale-unbalanced', key: 'nav_codes' },
+    { id: 'studycases', icon: 'fa-graduation-cap', key: 'nav_cases' },
+    { id: 'usercases', icon: 'fa-briefcase', key: 'nav_usercases' },
+    { id: 'docgen', icon: 'fa-file-contract', key: 'nav_docgen' },
+    { id: 'contractreview', icon: 'fa-magnifying-glass', key: 'nav_contract' },
+    { id: 'tests', icon: 'fa-list-check', key: 'nav_tests' },
+    { id: 'progress', icon: 'fa-chart-pie', key: 'nav_progress' }
+];
+
+// --- APP CORE LOGIC ---
 window.app = {
-    init: async function() {
+    state: {
+        currentTab: 'home',
+        data: FALLBACK_DATA, // Use fallback directly to guarantee it works. (Local fetch often fails on file://)
+        progress: { score: 0, level: 'Boshlang\'ich', completed: [] },
+        userCases: [],
+        settings: { theme: 'light', lang: 'uz', speed: 1 },
+        audio: { synth: window.speechSynthesis, utterance: null, isPlaying: false, text: '' }
+    },
+
+    init: function() {
+        this.loadStorage();
         this.setupTheme();
-        this.renderNavigation();
+        this.applyLanguage();
+        this.renderNav();
         this.bindEvents();
-        await this.loadData();
-        this.updateProgressUI();
-        this.switchTab('home');
-        
-        // Handle Speech Synthesis issues on load
-        if(state.audio.synth) {
-            state.audio.synth.cancel();
-        }
+        this.renderAll();
+        this.setupSpeechToText();
+    },
+
+    loadStorage: function() {
+        try {
+            const p = localStorage.getItem('lm_progress');
+            if(p) this.state.progress = JSON.parse(p);
+            
+            const u = localStorage.getItem('lm_usercases');
+            if(u) this.state.userCases = JSON.parse(u);
+            
+            const s = localStorage.getItem('lm_settings');
+            if(s) {
+                this.state.settings = JSON.parse(s);
+                document.getElementById('lang-select').value = this.state.settings.lang;
+            }
+        } catch(e) { console.error("Storage load error", e); }
+    },
+
+    saveStorage: function() {
+        localStorage.setItem('lm_progress', JSON.stringify(this.state.progress));
+        localStorage.setItem('lm_usercases', JSON.stringify(this.state.userCases));
+        localStorage.setItem('lm_settings', JSON.stringify(this.state.settings));
     },
 
     setupTheme: function() {
-        const root = document.documentElement;
-        if (state.settings.theme === 'dark') {
-            root.classList.add('dark');
+        if(this.state.settings.theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.getElementById('theme-toggle').innerHTML = '<i class="fa-solid fa-sun"></i>';
         } else {
-            root.classList.remove('dark');
+            document.documentElement.classList.remove('dark');
+            document.getElementById('theme-toggle').innerHTML = '<i class="fa-solid fa-moon"></i>';
         }
-        
-        document.getElementById('theme-toggle').innerHTML = state.settings.theme === 'dark' 
-            ? '<i class="fa-solid fa-sun"></i>' 
-            : '<i class="fa-solid fa-moon"></i>';
     },
 
-    toggleTheme: function() {
-        state.settings.theme = state.settings.theme === 'light' ? 'dark' : 'light';
-        localStorage.setItem('lawMasterSettings', JSON.stringify(state.settings));
-        this.setupTheme();
+    applyLanguage: function() {
+        const lang = this.state.settings.lang;
+        const dict = I18N[lang];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            el.textContent = dict[el.getAttribute('data-i18n')] || el.textContent;
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            el.placeholder = dict[el.getAttribute('data-i18n-placeholder')] || el.placeholder;
+        });
+        this.renderNav(); // Re-render nav with new lang
     },
 
-    renderNavigation: function() {
-        const desktopNav = document.getElementById('desktop-nav');
-        const mobileNav = document.getElementById('mobile-nav').querySelector('div');
-        
-        desktopNav.innerHTML = '';
-        mobileNav.innerHTML = '';
+    renderNav: function() {
+        const dNav = document.getElementById('desktop-nav');
+        const mNav = document.getElementById('mobile-nav-list');
+        dNav.innerHTML = ''; mNav.innerHTML = '';
+        const lang = this.state.settings.lang;
 
         NAV_ITEMS.forEach(item => {
-            // Desktop
-            const dBtn = document.createElement('button');
-            dBtn.className = `nav-item w-full flex items-center gap-3 px-6 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-slate-600 dark:text-slate-300 font-medium ${item.id === state.currentTab ? 'active' : ''}`;
-            dBtn.dataset.target = item.id;
-            dBtn.innerHTML = `<i class="fa-solid ${item.icon} w-5 text-center"></i> ${item.label}`;
-            dBtn.onclick = () => this.switchTab(item.id);
-            desktopNav.appendChild(dBtn);
-
-            // Mobile
-            if (item.showMobile) {
-                const mBtn = document.createElement('button');
-                mBtn.className = `mobile-nav-item flex flex-col items-center justify-center w-full h-full text-slate-500 hover:text-primary dark:hover:text-blue-400 transition-colors ${item.id === state.currentTab ? 'active' : ''}`;
-                mBtn.dataset.target = item.id;
-                mBtn.innerHTML = `<i class="fa-solid ${item.icon} text-lg mb-1"></i><span class="text-[10px] font-medium">${item.label}</span>`;
-                mBtn.onclick = () => this.switchTab(item.id);
-                mobileNav.appendChild(mBtn);
-            }
+            const label = I18N[lang][item.key];
+            const activeCls = this.state.currentTab === item.id ? 'bg-blue-50 text-primary dark:bg-slate-700 border-r-4 border-primary' : '';
+            
+            const btnHtml = `<button onclick="app.switchTab('${item.id}')" class="w-full flex items-center gap-3 px-6 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-300 font-medium ${activeCls}"><i class="fa-solid ${item.icon} w-5 text-center"></i> ${label}</button>`;
+            
+            dNav.innerHTML += btnHtml;
+            mNav.innerHTML += btnHtml;
         });
     },
 
     switchTab: function(tabId) {
-        // Stop audio when switching tabs
         this.stopAudio();
+        this.state.currentTab = tabId;
         
-        state.currentTab = tabId;
-        
-        // Update UI
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-        document.getElementById(`view-${tabId}`).classList.add('active');
+        const target = document.getElementById(`view-${tabId}`);
+        if(target) target.classList.add('active');
         
-        document.querySelectorAll('.nav-item').forEach(el => {
-            el.classList.toggle('active', el.dataset.target === tabId);
-        });
-        document.querySelectorAll('.mobile-nav-item').forEach(el => {
-            el.classList.toggle('active', el.dataset.target === tabId);
-        });
-        
-        // Render specific content if needed
-        if(tabId === 'lessons') this.renderLessons();
-        if(tabId === 'codes') this.renderCodes();
-        if(tabId === 'cases') this.renderCases();
-        if(tabId === 'progress') this.updateProgressUI();
-        
-        // Scroll to top
+        this.renderNav();
+        document.getElementById('mobile-menu').classList.add('translate-x-full');
+        document.getElementById('mobile-menu-overlay').classList.add('hidden');
         document.getElementById('content-area').scrollTop = 0;
     },
 
-    async loadData() {
-        try {
-            // Using standard fetch, assuming data is relative to index.html (or in public/data for dev)
-            const files = ['laws.json', 'codes.json', 'lessons.json', 'tests.json', 'cases.json'];
-            
-            for (let file of files) {
-                const response = await fetch(`data/${file}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    state.data[file.replace('.json', '')] = data;
-                } else {
-                    console.warn(`Could not load ${file}`);
-                }
-            }
-        } catch (e) {
-            console.error("Ma'lumotlarni yuklashda xatolik:", e);
-        }
-    },
-
     bindEvents: function() {
-        document.getElementById('theme-toggle').onclick = () => this.toggleTheme();
-        
-        // AI Chat
-        const aiInput = document.getElementById('ai-input');
-        const aiBtn = document.getElementById('ai-send-btn');
-        const handleSend = () => {
-            if(aiInput.value.trim()) {
-                this.handleAIQuery(aiInput.value.trim());
-                aiInput.value = '';
-            }
+        document.getElementById('theme-toggle').onclick = () => {
+            this.state.settings.theme = this.state.settings.theme === 'light' ? 'dark' : 'light';
+            this.saveStorage();
+            this.setupTheme();
         };
-        aiBtn.onclick = handleSend;
-        aiInput.onkeypress = (e) => e.key === 'Enter' && handleSend();
+
+        document.getElementById('lang-select').onchange = (e) => {
+            this.state.settings.lang = e.target.value;
+            this.saveStorage();
+            this.applyLanguage();
+        };
+
+        // Mobile Menu
+        document.getElementById('mobile-menu-btn').onclick = () => {
+            document.getElementById('mobile-menu').classList.remove('translate-x-full');
+            document.getElementById('mobile-menu-overlay').classList.remove('hidden');
+        };
+        const closeMenu = () => {
+            document.getElementById('mobile-menu').classList.add('translate-x-full');
+            document.getElementById('mobile-menu-overlay').classList.add('hidden');
+        };
+        document.getElementById('mobile-menu-close').onclick = closeMenu;
+        document.getElementById('mobile-menu-overlay').onclick = closeMenu;
 
         // Audio controls
         document.getElementById('audio-play').onclick = () => this.playAudio();
         document.getElementById('audio-pause').onclick = () => this.pauseAudio();
         document.getElementById('audio-stop').onclick = () => this.stopAudio();
-        document.getElementById('audio-close').onclick = () => this.hideAudioPlayer();
-        document.getElementById('audio-speed').onchange = (e) => {
-            state.settings.speed = parseFloat(e.target.value);
-            localStorage.setItem('lawMasterSettings', JSON.stringify(state.settings));
-            if(state.audio.isPlaying) {
-                // restart with new speed
-                let currentText = state.audio.textToPlay;
-                this.stopAudio();
-                setTimeout(() => this.startAudio(currentText), 50);
-            }
+        document.getElementById('audio-close').onclick = () => {
+            this.stopAudio();
+            document.getElementById('audio-player').classList.add('translate-y-32');
         };
+        document.getElementById('audio-speed').onchange = (e) => {
+            this.state.settings.speed = parseFloat(e.target.value);
+            this.saveStorage();
+        };
+
+        // AI Chat
+        const aiIn = document.getElementById('ai-input');
+        const aiBtn = document.getElementById('ai-send-btn');
+        const handleSend = () => {
+            if(aiIn.value.trim()) { this.handleAI(aiIn.value.trim()); aiIn.value = ''; }
+        };
+        aiBtn.onclick = handleSend;
+        aiIn.onkeypress = (e) => e.key === 'Enter' && handleSend();
     },
 
-    // --- AI Logic (Rule-based mockup) ---
-    handleAIQuery: function(query) {
-        const container = document.getElementById('ai-chat-container');
-        
-        // Add User Message
-        const userHtml = `
-            <div class="flex gap-4 justify-end">
-                <div class="chat-bubble-user px-4 py-3 rounded-2xl text-sm md:text-base max-w-[85%] shadow-sm">
-                    ${this.escapeHTML(query)}
-                </div>
-            </div>`;
-        container.insertAdjacentHTML('beforeend', userHtml);
-        container.scrollTop = container.scrollHeight;
+    renderAll: function() {
+        this.renderLessons();
+        this.renderCodes();
+        this.renderStudyCases();
+        this.renderUserCases();
+        this.updateProgressUI();
+    },
 
-        // Simulate thinking
+    // --- AI LOGIC (Fallback) ---
+    handleAI: function(q) {
+        const c = document.getElementById('ai-chat-container');
+        c.innerHTML += `<div class="flex gap-4 justify-end"><div class="bg-primary text-white px-4 py-3 rounded-2xl text-sm max-w-[85%]">${this.escape(q)}</div></div>`;
+        c.scrollTop = c.scrollHeight;
+
         setTimeout(() => {
-            const aiHtml = `
-            <div class="flex gap-4">
-                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex-shrink-0 flex items-center justify-center text-primary dark:text-blue-400">
-                    <i class="fa-solid fa-robot text-sm"></i>
-                </div>
-                <div class="chat-bubble-ai px-4 py-3 rounded-2xl text-sm md:text-base max-w-[85%] shadow-sm">
-                    ${this.generateAIResponse(query)}
-                    <button onclick="app.startAudio(this.parentElement.innerText)" class="mt-3 text-xs text-primary dark:text-blue-400 font-semibold flex items-center gap-1 hover:underline">
-                        <i class="fa-solid fa-volume-high"></i> O'qib berish
-                    </button>
-                </div>
-            </div>`;
-            container.insertAdjacentHTML('beforeend', aiHtml);
-            container.scrollTop = container.scrollHeight;
-        }, 800);
+            let ans = q.toLowerCase().includes('shartnoma') 
+                ? "Shartnoma tomonlarning huquq va majburiyatlarini belgilovchi kelishuvdir. Bu qonuniydir."
+                : "Kechirasiz, men hozir oflayn demoman. Savolingiz tahlil qilinmoqda, lekin haqiqiy API ulanmagan.";
+            
+            c.innerHTML += `<div class="flex gap-4"><div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-primary"><i class="fa-solid fa-robot"></i></div><div class="chat-bubble-ai bg-slate-100 dark:bg-slate-700 px-4 py-3 rounded-2xl text-sm max-w-[85%]">
+                <p>${ans}</p>
+                <button onclick="app.startAudio('${ans}')" class="mt-2 text-xs text-primary font-bold"><i class="fa-solid fa-volume-high"></i> O'qish</button>
+            </div></div>`;
+            c.scrollTop = c.scrollHeight;
+        }, 600);
     },
 
-    generateAIResponse: function(query) {
-        const q = query.toLowerCase();
-        
-        // Very basic matching based on offline data
-        if(q.includes('shartnoma')) {
-            return `<b>Savolga qisqa javob:</b> Shartnoma tomonlarning huquq va majburiyatlarini belgilovchi kelishuvdir.<br><br>
-            <b>Batafsil tushuntirish:</b> Fuqarolik Kodeksining 1-moddasiga ko'ra, munosabatlar ishtirokchilarining tengligi va shartnoma erkinligi asosiy prinsiplardir. Siz xohlagan qonuniy shartnomani tuzishga haqlisiz.<br><br>
-            <b>Tegishli qonun/modda:</b> FK 1-modda.<br>
-            <b>Muhim ogohlantirish:</b> Ushbu javob ta'limiy xarakterga ega.`;
+    // --- SPEECH TO TEXT ---
+    setupSpeechToText: function() {
+        const btn = document.getElementById('ai-stt-btn');
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if(SR) {
+            const r = new SR();
+            r.continuous = false;
+            btn.onclick = () => {
+                r.lang = this.state.settings.lang === 'uz' ? 'uz-UZ' : (this.state.settings.lang === 'ru' ? 'ru-RU' : 'en-US');
+                r.start();
+                btn.classList.add('text-red-500', 'animate-pulse');
+            };
+            r.onresult = (e) => { document.getElementById('ai-input').value = e.results[0][0].transcript; };
+            r.onend = r.onerror = () => btn.classList.remove('text-red-500', 'animate-pulse');
+        } else {
+            btn.style.display = 'none';
         }
-        
-        if(q.includes('mehnat') || q.includes('maosh') || q.includes('ish')) {
-            return `<b>Savolga qisqa javob:</b> Mehnat munosabatlari Mehnat Kodeksi bilan tartibga solinadi.<br><br>
-            <b>Batafsil tushuntirish:</b> Har qanday ishga qabul qilish mehnat shartnomasi bilan rasmiylashtirilishi shart. Agar maoshingiz berilmasa, Mehnat inspeksiyasiga murojaat qilish huquqiga egasiz.<br><br>
-            <b>Tegishli qonun/modda:</b> Mehnat Kodeksi 1-modda.<br>
-            <b>Ogohlantirish:</b> Ushbu javob ta'limiy xarakterga ega.`;
-        }
-
-        return `Kechirasiz, oflayn rejimda bu savolga aniq javob topa olmadim. Iltimos, huquq sohasi, shartnoma, mehnat yoki kodekslar haqida so'rab ko'ring.`;
     },
 
-    // --- Audio Logic ---
-    startAudio: function(text) {
-        const cleanedText = text.replace(/O'qib berish/g, '').trim();
-        state.audio.textToPlay = cleanedText;
-        
-        const player = document.getElementById('audio-player');
-        player.classList.remove('translate-y-32');
-        
+    // --- AUDIO LOGIC ---
+    startAudio: function(txt) {
+        this.state.audio.text = txt;
+        document.getElementById('audio-player').classList.remove('translate-y-32');
         this.playAudio();
     },
-
     playAudio: function() {
-        if(!state.audio.synth) return alert("Brauzeringiz audio funksiyasini qo'llab-quvvatlamaydi.");
-        
-        if(state.audio.synth.paused) {
-            state.audio.synth.resume();
+        if(!this.state.audio.synth) return alert("Audio qo'llab-quvvatlanmaydi.");
+        if(this.state.audio.synth.paused) {
+            this.state.audio.synth.resume();
         } else {
-            state.audio.synth.cancel();
-            state.audio.utterance = new SpeechSynthesisUtterance(state.audio.textToPlay);
-            state.audio.utterance.lang = state.settings.lang === 'uz' ? 'uz-UZ' : 'ru-RU';
-            state.audio.utterance.rate = state.settings.speed;
-            
-            state.audio.utterance.onend = () => {
-                this.stopAudio();
-                document.getElementById('audio-status').innerText = 'Tugadi';
-            };
-            
-            state.audio.synth.speak(state.audio.utterance);
+            this.state.audio.synth.cancel();
+            const ut = new SpeechSynthesisUtterance(this.state.audio.text);
+            ut.lang = this.state.settings.lang === 'ru' ? 'ru-RU' : 'uz-UZ';
+            ut.rate = this.state.settings.speed;
+            ut.onend = () => this.stopAudio();
+            this.state.audio.synth.speak(ut);
         }
-        
-        state.audio.isPlaying = true;
         document.getElementById('audio-play').classList.add('hidden');
         document.getElementById('audio-pause').classList.remove('hidden');
         document.getElementById('audio-status').innerText = "O'qilmoqda...";
     },
-
     pauseAudio: function() {
-        if(state.audio.synth && state.audio.isPlaying) {
-            state.audio.synth.pause();
-            state.audio.isPlaying = false;
-            document.getElementById('audio-play').classList.remove('hidden');
-            document.getElementById('audio-pause').classList.add('hidden');
-            document.getElementById('audio-status').innerText = "Pauza";
-        }
-    },
-
-    stopAudio: function() {
-        if(state.audio.synth) {
-            state.audio.synth.cancel();
-        }
-        state.audio.isPlaying = false;
+        if(this.state.audio.synth) this.state.audio.synth.pause();
         document.getElementById('audio-play').classList.remove('hidden');
         document.getElementById('audio-pause').classList.add('hidden');
-        document.getElementById('audio-status').innerText = "To'xtatildi";
+        document.getElementById('audio-status').innerText = "Pauza";
+    },
+    stopAudio: function() {
+        if(this.state.audio.synth) this.state.audio.synth.cancel();
+        document.getElementById('audio-play').classList.remove('hidden');
+        document.getElementById('audio-pause').classList.add('hidden');
+        document.getElementById('audio-status').innerText = "Tayyor";
     },
 
-    hideAudioPlayer: function() {
-        this.stopAudio();
-        document.getElementById('audio-player').classList.add('translate-y-32');
-    },
-
-    // --- Renderers ---
+    // --- RENDERERS ---
     renderLessons: function() {
-        const container = document.getElementById('lessons-container');
-        if(!state.data.lessons.length) {
-            container.innerHTML = '<p class="text-slate-500">Darslar yuklanmoqda yoki mavjud emas.</p>';
-            return;
-        }
-
-        container.innerHTML = state.data.lessons.map(lesson => `
-            <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden hover-card flex flex-col">
-                <div class="p-6 flex-1">
-                    <span class="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900 text-primary dark:text-blue-300 text-xs font-bold rounded-full mb-3">${lesson.level}</span>
-                    <h3 class="font-bold text-xl mb-2">${lesson.title}</h3>
-                    <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">${lesson.simple_explanation.substring(0, 80)}...</p>
-                </div>
-                <div class="bg-slate-50 dark:bg-slate-700/50 p-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                    <button onclick="app.startAudio('${lesson.audio_text.replace(/'/g, "\\'")}')" class="text-slate-500 hover:text-primary transition-colors p-2">
-                        <i class="fa-solid fa-volume-high"></i>
-                    </button>
-                    <button onclick="app.completeLesson('${lesson.id}')" class="text-primary dark:text-blue-400 font-semibold text-sm hover:underline">
-                        O'qishni boshlash <i class="fa-solid fa-chevron-right text-xs ml-1"></i>
-                    </button>
+        document.getElementById('lessons-container').innerHTML = this.state.data.lessons.map(l => `
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full mb-2 inline-block">${l.level}</span>
+                <h3 class="font-bold text-lg mb-2">${l.title}</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">${l.simple_explanation}</p>
+                <div class="flex justify-between items-center">
+                    <button onclick="app.startAudio('${l.audio_text}')" class="text-primary"><i class="fa-solid fa-volume-high"></i></button>
+                    <button onclick="app.addScore(10); alert('Dars tugatildi! +10 ball')" class="text-xs bg-primary text-white px-3 py-1 rounded">O'qish</button>
                 </div>
             </div>
         `).join('');
     },
 
     renderCodes: function() {
-        const container = document.getElementById('codes-container');
-        if(!state.data.codes.length) {
-            container.innerHTML = '<p class="text-slate-500">Kodekslar yuklanmoqda yoki mavjud emas.</p>';
-            return;
-        }
-
-        let html = '';
-        state.data.codes.forEach(code => {
-            html += `<div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 mb-4">
-                <h3 class="font-bold text-xl brand-font mb-4 text-primary dark:text-blue-400">${code.title}</h3>
-            `;
-            
-            code.sections.forEach(sec => {
-                html += `<h4 class="font-semibold text-lg mt-4 mb-2 text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 pb-2">${sec.title}</h4>`;
-                
-                sec.articles.forEach(art => {
-                    html += `
-                        <div class="mb-4 pl-4 border-l-2 border-slate-200 dark:border-slate-600">
-                            <div class="flex justify-between items-start">
-                                <h5 class="font-bold text-sm text-slate-700 dark:text-slate-300">${art.number}: ${art.title}</h5>
-                                <button onclick="app.startAudio('${art.text.replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-primary transition-colors">
-                                    <i class="fa-solid fa-volume-high text-xs"></i>
-                                </button>
-                            </div>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">${art.text}</p>
-                            <div class="mt-2 bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-xs text-blue-800 dark:text-blue-300">
-                                <strong>Oddiy tilda:</strong> ${art.explanation}
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-            html += `</div>`;
-        });
-        
-        container.innerHTML = html;
-    },
-
-    renderCases: function() {
-        const container = document.getElementById('cases-container');
-        if(!state.data.cases.length) {
-            container.innerHTML = '<p class="text-slate-500">Vaziyatlar yuklanmoqda yoki mavjud emas.</p>';
-            return;
-        }
-
-        container.innerHTML = state.data.cases.map(c => `
-            <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-                <h3 class="font-bold text-lg mb-2 text-primary dark:text-blue-400">${c.title}</h3>
-                <p class="text-slate-700 dark:text-slate-300 mb-4 bg-slate-50 dark:bg-slate-700 p-4 rounded-lg">${c.scenario}</p>
-                
-                <div class="space-y-4 mb-4">
-                    ${c.questions.map((q, idx) => `
-                        <div>
-                            <p class="font-semibold text-sm mb-2">${idx+1}. ${q.q}</p>
-                            <div class="flex flex-wrap gap-2">
-                                ${q.options.map(opt => `
-                                    <button onclick="alert('Batafsil yechim test orqali taqdim etiladi. Yechim: ${c.explanation}')" class="text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 px-3 py-1.5 rounded-full hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">${opt}</button>
-                                `).join('')}
-                            </div>
+        document.getElementById('codes-container').innerHTML = this.state.data.codes.map(c => `
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 mb-4">
+                <h3 class="font-bold text-xl text-primary mb-4">${c.title}</h3>
+                ${c.sections.map(s => `
+                    <h4 class="font-bold border-b border-slate-200 dark:border-slate-700 pb-2 mb-2">${s.title}</h4>
+                    ${s.articles.map(a => `
+                        <div class="mb-4 pl-4 border-l-2 border-primary">
+                            <p class="font-bold text-sm">${a.number}: ${a.title}</p>
+                            <p class="text-sm mt-1">${a.text}</p>
+                            <button onclick="app.startAudio('${a.text}')" class="text-xs text-primary mt-2"><i class="fa-solid fa-volume-high"></i> Eshitish</button>
                         </div>
                     `).join('')}
-                </div>
+                `).join('')}
             </div>
         `).join('');
     },
 
-    // --- Progress & Test Logic ---
-    completeLesson: function(id) {
-        if(!state.progress.completedLessons.includes(id)) {
-            state.progress.completedLessons.push(id);
-            this.addScore(10);
-        }
-        alert("Dars muvaffaqiyatli o'qildi! +10 ball");
+    renderStudyCases: function() {
+        document.getElementById('studycases-container').innerHTML = this.state.data.cases.map(c => `
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                <h3 class="font-bold text-lg mb-2">${c.title}</h3>
+                <p class="text-sm bg-slate-50 dark:bg-slate-700 p-3 rounded mb-4">${c.scenario}</p>
+                <button onclick="alert('Yechim: ${c.explanation}')" class="text-sm bg-amber-500 text-white px-4 py-2 rounded">Yechimni ko'rish</button>
+            </div>
+        `).join('');
     },
-    
+
+    // --- USER CASES CRUD ---
+    showCaseForm: function(id = null) {
+        document.getElementById('case-form-container').classList.remove('hidden');
+        if(id) {
+            const c = this.state.userCases.find(x => x.id === id);
+            if(c) {
+                document.getElementById('case-id').value = c.id;
+                document.getElementById('case-client').value = c.client;
+                document.getElementById('case-type').value = c.type;
+                document.getElementById('case-desc').value = c.desc;
+            }
+        } else {
+            document.getElementById('case-id').value = '';
+            document.getElementById('case-client').value = '';
+            document.getElementById('case-desc').value = '';
+        }
+    },
+    hideCaseForm: function() {
+        document.getElementById('case-form-container').classList.add('hidden');
+    },
+    saveUserCase: function() {
+        const id = document.getElementById('case-id').value;
+        const client = document.getElementById('case-client').value;
+        const type = document.getElementById('case-type').value;
+        const desc = document.getElementById('case-desc').value;
+        
+        if(!client) return alert("Mijoz ismini kiriting!");
+
+        if(id) {
+            const idx = this.state.userCases.findIndex(x => x.id === id);
+            if(idx > -1) this.state.userCases[idx] = { id, client, type, desc, date: new Date().toLocaleDateString() };
+        } else {
+            this.state.userCases.push({ id: Date.now().toString(), client, type, desc, date: new Date().toLocaleDateString() });
+        }
+        
+        this.saveStorage();
+        this.hideCaseForm();
+        this.renderUserCases();
+    },
+    deleteUserCase: function(id) {
+        if(confirm("Haqiqatan ham o'chirasizmi?")) {
+            this.state.userCases = this.state.userCases.filter(x => x.id !== id);
+            this.saveStorage();
+            this.renderUserCases();
+        }
+    },
+    renderUserCases: function() {
+        const c = document.getElementById('usercases-list');
+        if(!this.state.userCases.length) { c.innerHTML = '<p class="text-sm text-slate-500">Hozircha ishlar yo\'q.</p>'; return; }
+        
+        c.innerHTML = this.state.userCases.map(u => `
+            <div class="bg-white dark:bg-slate-800 p-4 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h4 class="font-bold">${u.client}</h4>
+                        <span class="text-xs text-slate-500">${u.date} | ${u.type}</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="app.showCaseForm('${u.id}')" class="text-blue-500"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="app.deleteUserCase('${u.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+                <p class="text-sm text-slate-700 dark:text-slate-300">${u.desc}</p>
+            </div>
+        `).join('');
+    },
+
+    // --- DOC GENERATOR ---
+    generateDoc: function() {
+        const type = document.getElementById('doc-type').value;
+        const name = document.getElementById('doc-name').value || "[F.I.SH]";
+        const details = document.getElementById('doc-details').value || "[Tafsilotlar]";
+        
+        let res = "";
+        if(type === 'ariza') {
+            res = `DA'VO ARIZASI\n\nMen, ${name}, ushbu ariza orqali shuni ma'lum qilamanki:\n\n${details}\n\nYuqoridagilardan kelib chiqib, qonuniy choralar ko'rishingizni so'rayman.\n\nSana: ${new Date().toLocaleDateString()}\nImzo: _________`;
+        } else {
+            res = `SHIKOYAT XATI\n\nMen, ${name}, quyidagi holat yuzasidan shikoyat qilaman:\n\n${details}\n\nIltimos, ushbu holatni o'rganib chiqib, huquqlarimni tiklashda amaliy yordam bering.\n\nSana: ${new Date().toLocaleDateString()}\nImzo: _________`;
+        }
+        document.getElementById('doc-result').value = res;
+    },
+    copyDoc: function() {
+        const t = document.getElementById('doc-result');
+        t.select();
+        document.execCommand('copy');
+        alert("Nusxa olindi!");
+    },
+
+    // --- CONTRACT REVIEW ---
+    reviewContract: function() {
+        const txt = document.getElementById('contract-input').value.toLowerCase();
+        let issues = [];
+        
+        if(!txt.trim()) return alert("Matn kiriting!");
+        
+        if(txt.includes('jarima') || txt.includes('penya')) issues.push("Jarima (Penya): Shartnomada jarima miqdorlari mavjud. Ularning adolatli foizda ekanligini tekshiring.");
+        if(txt.includes('muddat')) issues.push("Muddat: Majburiyatlarni bajarish muddatlari ko'rsatilgan. Ular siz uchun qulayligini tasdiqlang.");
+        if(txt.includes('fors-major')) issues.push("Fors-major: Yengib bo'lmas kuch holatlari kiritilgan. Bu standart va xavfsiz band.");
+        if(issues.length === 0) issues.push("Matnda yaqqol xavfli terminlar topilmadi. Ammo huquqshunos bilan maslahatlashish tavsiya etiladi.");
+        
+        document.getElementById('contract-result').innerHTML = issues.map(i => `<li class="text-sm mb-2 border-l-2 border-amber-500 pl-2">${i}</li>`).join('');
+        document.getElementById('contract-result-container').classList.remove('hidden');
+    },
+
+    // --- TESTS & PROGRESS ---
     startTest: function() {
         document.getElementById('test-intro').classList.add('hidden');
         document.getElementById('test-active').classList.remove('hidden');
-        
-        const container = document.getElementById('test-active');
-        const tests = state.data.tests || [];
-        
-        if(!tests.length) {
-            container.innerHTML = '<p>Testlar mavjud emas.</p>';
-            return;
-        }
-
-        // Just render the first test as an example
-        const t = tests[0];
-        container.innerHTML = `
-            <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 md:p-8 shadow-sm">
-                <div class="flex justify-between items-center mb-6">
-                    <span class="text-xs font-bold bg-amber-100 text-amber-700 px-3 py-1 rounded-full">${t.level}</span>
-                    <span class="text-sm font-semibold text-slate-500">1 / ${tests.length}</span>
-                </div>
-                
-                <h3 class="text-xl font-bold mb-6">${t.question}</h3>
-                
+        const t = this.state.data.tests[0]; // Just showing first for demo
+        document.getElementById('test-active').innerHTML = `
+            <div class="bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm">
+                <h3 class="font-bold text-xl mb-6">${t.question}</h3>
                 <div class="space-y-3">
-                    ${t.options.map((opt, i) => `
-                        <button onclick="app.submitAnswer(${i}, ${t.correct_index})" class="w-full text-left p-4 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-primary hover:bg-blue-50 dark:hover:bg-slate-700 transition-all font-medium">
-                            ${opt}
-                        </button>
+                    ${t.options.map((o, i) => `
+                        <button onclick="app.submitTest(${i}, ${t.correct_index})" class="w-full p-4 text-left border rounded hover:bg-slate-50 dark:hover:bg-slate-700">${o}</button>
                     `).join('')}
                 </div>
             </div>
         `;
     },
-    
-    submitAnswer: function(selectedIndex, correctIndex) {
-        if(selectedIndex === correctIndex) {
+    submitTest: function(sel, cor) {
+        if(sel === cor) {
+            alert("To'g'ri! +20 ball.");
             this.addScore(20);
-            alert("To'g'ri javob! +20 ball \n(Demoga faqat 1 ta test ulangan)");
         } else {
-            alert("Noto'g'ri javob. Qayta urinib ko'ring.");
+            alert("Xato javob.");
         }
-        
-        // Reset UI
         document.getElementById('test-intro').classList.remove('hidden');
         document.getElementById('test-active').classList.add('hidden');
         this.switchTab('progress');
     },
-
-    addScore: function(points) {
-        state.progress.score += points;
-        
-        // Update level
-        if(state.progress.score > 200) state.progress.level = 'Professional yurist';
-        else if(state.progress.score > 100) state.progress.level = 'Yosh yurist';
-        else if(state.progress.score > 50) state.progress.level = 'Huquq bilimdoni';
-        else if(state.progress.score > 20) state.progress.level = 'Huquq o\'rganuvchi';
-        
-        localStorage.setItem('lawMasterProgress', JSON.stringify(state.progress));
+    addScore: function(pts) {
+        this.state.progress.score += pts;
+        let s = this.state.progress.score;
+        if(s >= 100) this.state.progress.level = "Professional";
+        else if(s >= 50) this.state.progress.level = "Havaskor";
+        this.saveStorage();
         this.updateProgressUI();
     },
-
     updateProgressUI: function() {
-        document.getElementById('user-score-display').innerText = state.progress.score;
-        document.getElementById('user-level-display').innerText = state.progress.level;
-        
-        const progScore = document.getElementById('prog-score');
-        const progLevel = document.getElementById('prog-level');
-        const progLessons = document.getElementById('prog-lessons');
-        
-        if(progScore) progScore.innerText = state.progress.score;
-        if(progLevel) progLevel.innerText = state.progress.level;
-        if(progLessons) progLessons.innerText = state.progress.completedLessons.length;
+        const el = document.getElementById('prog-score');
+        if(el) {
+            el.innerText = this.state.progress.score;
+            document.getElementById('prog-level').innerText = this.state.progress.level;
+        }
     },
 
-    escapeHTML: function(str) {
-        return str.replace(/[&<>'"]/g, 
-            tag => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                "'": '&#39;',
-                '"': '&quot;'
-            }[tag])
-        );
+    escape: function(str) {
+        return str.replace(/[&<>'"]/g, t => ({ '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;' }[t]));
     }
 };
 
-// Initialize app when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.app.init();
-});
+document.addEventListener('DOMContentLoaded', () => window.app.init());

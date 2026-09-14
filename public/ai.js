@@ -1,147 +1,135 @@
 const aiController = {
-    chatHistory: [],
+    history: [],
     
     async sendMessage() {
         const input = document.getElementById('ai-input');
         const text = input.value.trim();
         if (!text) return;
 
-        this.appendMessage('user', text);
+        this.appendMsg('user', text);
         input.value = '';
         this.scrollToBottom();
 
-        // Show typing indicator
         const typingId = 'typing-' + Date.now();
-        const chatBox = document.getElementById('ai-chat-box');
-        chatBox.innerHTML += `
-            <div id="${typingId}" class="flex items-start gap-4 mb-4">
-                <div class="w-10 h-10 rounded-full bg-primary-900 text-gold-500 flex items-center justify-center shrink-0 border border-gold-500/30">
-                    <i class="fas fa-robot"></i>
+        document.getElementById('ai-chat-box').innerHTML += `
+            <div id="${typingId}" class="flex items-start gap-4 mb-6 animate-fade-in">
+                <div class="w-10 h-10 rounded-full bg-primary-900 text-gold-500 flex items-center justify-center shrink-0 shadow-md"><i class="fas fa-robot"></i></div>
+                <div class="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-none p-4 shadow-sm border border-gray-200 dark:border-gray-700 flex items-center">
+                    <div class="flex gap-1.5 items-center px-2 py-1">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                    </div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl rounded-tl-none p-4 shadow-sm">
-                    <i class="fas fa-ellipsis-h fa-fade text-gray-400"></i>
-                </div>
-            </div>
-        `;
+            </div>`;
         this.scrollToBottom();
 
         try {
-            // Check if backend is available by making the request
-            const response = await fetch('/api/chat', {
+            const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, history: this.chatHistory })
+                body: JSON.stringify({ message: text, history: this.history })
             });
 
-            document.getElementById(typingId).remove();
+            document.getElementById(typingId)?.remove();
 
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || 'Server error');
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Xatolik yuz berdi');
             }
 
-            const data = await response.json();
-            this.appendMessage('model', data.text);
-            this.chatHistory.push({ role: 'user', text: text });
-            this.chatHistory.push({ role: 'model', text: data.text });
-            app.history.add('ai', text);
+            const data = await res.json();
+            this.appendMsg('model', data.text);
+            this.history.push({ role: 'user', text: text }, { role: 'model', text: data.text });
+            app.state.history.add('AI Maslahat', text);
 
         } catch (error) {
             document.getElementById(typingId)?.remove();
-            console.error(error);
-            this.appendMessage('model', `Xatolik yuz berdi: ${error.message}\n\n*Agar API kalit qo'yilmagan bo'lsa, javob berish funksiyasi ishlamaydi.*`);
+            this.appendMsg('model', `<span class="text-red-500 font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> ${error.message}</span>`);
         }
     },
 
-    appendMessage(role, text) {
-        const chatBox = document.getElementById('ai-chat-box');
-        const isUser = role === 'user';
-        
-        let html = '';
-        if (isUser) {
-            html = `
+    appendMsg(role, text) {
+        const box = document.getElementById('ai-chat-box');
+        if (role === 'user') {
+            box.innerHTML += `
                 <div class="flex items-start gap-4 flex-row-reverse mb-6 animate-fade-in">
-                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
-                        <i class="fas fa-user text-gray-500 dark:text-gray-400"></i>
-                    </div>
-                    <div class="bg-primary-900 text-white rounded-2xl rounded-tr-none p-4 shadow-sm max-w-[85%] lg:max-w-[75%]">
-                        <p class="text-sm">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
-                    </div>
-                </div>
-            `;
+                    <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex justify-center items-center shrink-0 border border-gray-300 dark:border-gray-600"><i class="fas fa-user text-gray-500 dark:text-gray-400"></i></div>
+                    <div class="bg-primary-900 text-white rounded-2xl rounded-tr-none p-4 shadow-sm max-w-[85%]"><p class="text-sm leading-relaxed">${text}</p></div>
+                </div>`;
         } else {
-            // Format bold and lists simply
-            let formattedText = text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n\*/g, '<br>•')
+            let formatted = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary-900 dark:text-primary-400">$1</strong>')
                 .replace(/\n/g, '<br>');
-
-            html = `
+            let cleanText = text.replace(/'/g, "\\'").replace(/\n/g, ' ').replace(/\*/g, '');
+            const msgId = Date.now();
+            box.innerHTML += `
                 <div class="flex items-start gap-4 mb-6 animate-fade-in group">
-                    <div class="w-10 h-10 rounded-full bg-primary-900 text-gold-500 flex items-center justify-center shrink-0 border border-gold-500/30">
-                        <i class="fas fa-scale-balanced"></i>
-                    </div>
-                    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl rounded-tl-none p-4 shadow-sm max-w-[95%] lg:max-w-[85%] relative">
-                        <div class="text-sm prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
-                            ${formattedText}
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                            <button onclick="app.audio.play('${text.replace(/'/g, "\\'").replace(/\n/g, ' ')}', 'AI Javobi')" class="text-xs bg-gray-100 dark:bg-gray-700 hover:bg-primary-100 dark:hover:bg-primary-900/30 text-primary-700 dark:text-primary-400 px-3 py-1.5 rounded-full transition flex items-center gap-1">
-                                <i class="fas fa-volume-up"></i> Eshitish
-                            </button>
-                            <button onclick="app.favorites.toggle('ai', '${Date.now()}', '${text.replace(/'/g, "\\'").replace(/\n/g, ' ')}')" class="text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gold-50 dark:hover:bg-gold-900/30 text-gold-600 dark:text-gold-400 px-3 py-1.5 rounded-full transition flex items-center gap-1">
-                                <i class="fas fa-star"></i> Saqlash
-                            </button>
+                    <div class="w-10 h-10 rounded-full bg-primary-900 text-gold-500 flex justify-center items-center shrink-0 shadow-md border border-gold-500/30"><i class="fas fa-scale-balanced"></i></div>
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-none p-5 shadow-sm border border-gray-200 dark:border-gray-700 max-w-[95%] lg:max-w-[85%]">
+                        <div class="text-sm prose dark:prose-invert text-gray-800 dark:text-gray-200 leading-relaxed font-serif">${formatted}</div>
+                        <div class="mt-5 pt-3 border-t border-gray-100 dark:border-gray-700 flex gap-2">
+                            <button onclick="app.audio.play('${cleanText}', 'AI Maslahati')" class="text-xs bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-primary-50 hover:text-primary-600 hover:border-primary-200 transition flex items-center gap-2"><i class="fas fa-volume-up"></i> Eshitish</button>
+                            <button onclick="app.state.favs.toggle('ai', '${msgId}', 'AI Javobi')" class="text-xs bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gold-50 hover:text-gold-600 hover:border-gold-200 transition flex items-center gap-2"><i class="fas fa-star"></i> Saqlash</button>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
-        
-        chatBox.innerHTML += html;
         this.scrollToBottom();
     },
-
+    
     scrollToBottom() {
         const box = document.getElementById('ai-chat-box');
-        if(box) box.scrollTop = box.scrollHeight;
+        if (box) box.scrollTop = box.scrollHeight;
     },
-
-    // Speech to Text
+    
     stt: {
-        recognition: null,
-        isListening: false,
+        rec: null, listening: false,
         init() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SR) {
-                this.recognition = new SR();
-                this.recognition.lang = 'uz-UZ';
-                this.recognition.onresult = (e) => {
-                    const text = e.results[0][0].transcript;
+                this.rec = new SR();
+                this.rec.lang = 'uz-UZ';
+                this.rec.continuous = false;
+                this.rec.interimResults = false;
+                
+                this.rec.onresult = (e) => {
+                    const txt = e.results[0][0].transcript;
                     const input = document.getElementById('ai-input');
-                    input.value += (input.value ? ' ' : '') + text;
+                    input.value += (input.value ? ' ' : '') + txt;
                     this.stop();
                 };
-                this.recognition.onerror = () => this.stop();
-                this.recognition.onend = () => this.stop();
+                
+                this.rec.onerror = (e) => {
+                    console.error("Speech Recognition Error:", e);
+                    app.ui.toast("Mikrofon xatosi yoki ruxsat yo'q", "error");
+                    this.stop();
+                };
+                
+                this.rec.onend = () => this.stop();
             }
         },
         toggle() {
-            if (!this.recognition) this.init();
-            if (!this.recognition) return app.ui.toast("Brauzeringiz mikrofonga ruxsat bermaydi.", "error");
-
-            if (this.isListening) this.stop();
-            else this.start();
+            if (!this.rec) this.init();
+            if (!this.rec) return app.ui.toast("Brauzer mikrofonga ruxsat bermaydi.", "error");
+            this.listening ? this.stop() : this.start();
         },
-        start() {
-            this.isListening = true;
-            document.getElementById('btn-mic').classList.add('text-red-500', 'animate-pulse');
-            try { this.recognition.start(); } catch(e){}
+        start() { 
+            this.listening = true; 
+            const btn = document.getElementById('btn-mic');
+            btn.classList.add('bg-red-100', 'text-red-500', 'animate-pulse', 'border', 'border-red-300'); 
+            btn.classList.remove('bg-gray-100', 'text-gray-500');
+            this.rec.start(); 
+            app.ui.toast("Gapiring...", "info");
         },
-        stop() {
-            this.isListening = false;
-            document.getElementById('btn-mic')?.classList.remove('text-red-500', 'animate-pulse');
-            try { this.recognition.stop(); } catch(e){}
+        stop() { 
+            this.listening = false; 
+            const btn = document.getElementById('btn-mic');
+            if (btn) {
+                btn.classList.remove('bg-red-100', 'text-red-500', 'animate-pulse', 'border', 'border-red-300');
+                btn.classList.add('bg-gray-100', 'text-gray-500');
+            }
+            try { this.rec.stop(); } catch(e){} 
         }
     }
 };

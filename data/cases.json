@@ -1,0 +1,21 @@
+[
+  {
+    "id": "c1",
+    "title": "Mehnat nizosi: Maosh bermaslik",
+    "scenario": "Fuqaro A. qurilish kompaniyasida 3 oy ishladi, ammo u bilan mehnat shartnomasi tuzilmadi. Ish beruvchi unga kelishilgan ish haqini to'lashdan bosh tortmoqda.",
+    "questions": [
+      {
+        "q": "Muammo nimada?",
+        "options": ["Soliq to'lanmaganligi", "Mehnat shartnomasi yo'qligi va maosh berilmaganligi", "Ish vaqti oshib ketganligi"],
+        "correct": 1
+      },
+      {
+        "q": "Qaysi huquq sohasi qo'llaniladi?",
+        "options": ["Jinoyat huquqi", "Mehnat huquqi", "Ma'muriy huquq"],
+        "correct": 1
+      }
+    ],
+    "explanation": "To'g'ri javob: Garchi yozma mehnat shartnomasi tuzilmagan bo'lsa-da, xodim ishga amalda qo'yilgan bo'lsa, mehnat shartnomasi tuzilgan hisoblanadi. Xodim Mehnat inspeksiyasiga yoki Sudga murojaat qilib, guvohlar va ish jarayonidagi yozishmalar/rasmlar orqali amalda ishlaganini isbotlashi mumkin.",
+    "legal_basis": "Mehnat Kodeksi"
+  }
+]

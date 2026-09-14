@@ -1,0 +1,36 @@
+[
+  {
+    "id": "mk",
+    "title": "O'zbekiston Respublikasi Mehnat Kodeksi",
+    "sections": [
+      {
+        "title": "I Bo'lim. Umumiy Qoidalar",
+        "articles": [
+          {
+            "number": "1-modda",
+            "title": "Mehnat to'g'risidagi qonunchilikning maqsadi",
+            "text": "Mehnat to'g'risidagi qonunchilikning maqsadi xodimlar, ish beruvchilar va davlat manfaatlarini muvofiqlashtirish asosida mehnatga oid munosabatlarni tartibga solishdan iborat.",
+            "explanation": "Bu modda mehnat qonunlari nima uchun kerakligini, ya'ni ishchi va ish beruvchi o'rtasida adolat o'rnatishni tushuntiradi."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fk",
+    "title": "O'zbekiston Respublikasi Fuqarolik Kodeksi",
+    "sections": [
+      {
+        "title": "1-kichik bo'lim. Asosiy qoidalar",
+        "articles": [
+          {
+            "number": "1-modda",
+            "title": "Fuqarolik qonunchiligining asosiy negizlari",
+            "text": "Fuqarolik qonunchiligi o'zi tartibga soladigan munosabatlar ishtirokchilarining tengligi, mulkning daxlsizligi, shartnomaning erkinligi prinsiplariga asoslanadi.",
+            "explanation": "Har kim o'z mulkiga o'zi xo'jayin va shartnoma tuzishda erkin ekanligini bildiradi."
+          }
+        ]
+      }
+    ]
+  }
+]

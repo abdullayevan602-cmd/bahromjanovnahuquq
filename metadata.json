@@ -1,0 +1,6 @@
+{
+  "name": "LAW MASTER UZ \u2696\ufe0f",
+  "description": "Professional huquqiy ta'lim platformasi. O'zbekiston huquq tizimini interaktiv o'rganish.",
+  "requestFramePermissions": ["speaker"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

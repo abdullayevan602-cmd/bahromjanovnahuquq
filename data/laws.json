@@ -1,0 +1,14 @@
+[
+  {
+    "id": "konstitutsiya",
+    "title": "O'zbekiston Respublikasi Konstitutsiyasi",
+    "type": "Asosiy qonun",
+    "description": "O'zbekiston Respublikasining Oliy Qonuni. Barcha boshqa qonunlar Konstitutsiyaga asoslanadi."
+  },
+  {
+    "id": "ta-lim-to-g-risida",
+    "title": "Ta'lim to'g'risidagi Qonun",
+    "type": "Qonun",
+    "description": "Fuqarolarning ta'lim olish huquqlarini ta'minlash, ta'lim tizimini boshqarish asoslarini belgilaydi."
+  }
+]

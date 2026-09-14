@@ -1,0 +1,24 @@
+[
+  {
+    "id": "l1",
+    "level": "Boshlang'ich",
+    "title": "Huquq nima?",
+    "simple_explanation": "Huquq — bu jamiyatda odamlar qanday yashashi, nima qilishi mumkin va nima qilishi taqiqlanganini belgilab beruvchi qoidalar to'plami.",
+    "pro_explanation": "Huquq — davlat tomonidan belgilanadigan yoki tasdiqlanadigan hamda uning majburlov kuchi bilan ta'minlanadigan, jamiyatdagi ijtimoiy munosabatlarni tartibga solishga qaratilgan umummajburiy xulq-atvor qoidalari tizimidir.",
+    "example": "Siz do'kondan non sotib olganingizda ham huquqiy munosabatga (oldi-sotdi shartnomasi) kirishasiz.",
+    "case_study": "Kimdir sizning ruxsatingizsiz telefoningizni olsa, u sizning mulk huquqingizni buzgan bo'ladi.",
+    "question": "Huquq qoidalarini kim o'rnatadi?",
+    "audio_text": "Huquq — bu jamiyatda odamlar qanday yashashi, nima qilishi mumkin va nima qilishi taqiqlanganini belgilab beruvchi qoidalar to'plami. Davlat bu qoidalarni o'rnatadi va nazorat qiladi."
+  },
+  {
+    "id": "l2",
+    "level": "O'rta",
+    "title": "Shartnoma tushunchasi",
+    "simple_explanation": "Shartnoma - ikki yoki undan ortiq odamning biror ishni qilish yoki qilmaslik bo'yicha kelishuvi.",
+    "pro_explanation": "Ikki yoki undan ortiq shaxsning fuqarolik huquqlari va burchlarini belgilash, o'zgartirish yoki bekor qilish haqidagi kelishuvi shartnoma deyiladi.",
+    "example": "Ijaraga uy olish, mashina sotib olish yoki ishga kirish - bularning barchasi shartnoma orqali amalga oshiriladi.",
+    "case_study": "Ali Valiga qarz berdi. Qarzni qaytarish muddatini yozma shartnomada belgilashmadi. Vali qarzni qaytarmayapti.",
+    "question": "Shartnoma faqat yozma tuziladimi?",
+    "audio_text": "Shartnoma ikki yoki undan ortiq shaxsning kelishuvi hisoblanadi. Shartnomalar og'zaki va yozma shaklda tuzilishi mumkin."
+  }
+]
